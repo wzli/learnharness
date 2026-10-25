@@ -396,13 +396,20 @@ function SessionsSidebar() {
 	const router = useRouter();
 	const { open: openSettings } = useSettingsDialog();
 
+	const closeOnMobile = useCallback(() => {
+		if (typeof window !== "undefined" && window.innerWidth < 768) {
+			toggle();
+		}
+	}, [toggle]);
+
 	/* New session (owner, 2026-09-13): NO POST — the button opens the
 	   sessionless draft view; the session is created only when the first
 	   message is sent (and that message becomes its title). Search: a
 	   client-side filter over the poll snapshot — no server round trip. */
 	const newSession = useCallback(() => {
+		closeOnMobile();
 		router.push("/chat/new");
-	}, [router]);
+	}, [router, closeOnMobile]);
 
 	/* FUZZY (owner round 8, 2026-10-05): subsequence match ranked by
 	 * fuzzyScore — prefix beats word-boundary beats scattered. Empty query
@@ -646,9 +653,10 @@ function SessionsSidebar() {
 			)}
 			<aside
 				className={cn(
-					"sidebar-motion duration-200 z-50 md:static md:shrink-0 md:overflow-hidden",
-					open ? "w-72" : "w-0",
-					"max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:overflow-hidden max-md:shadow-2xl",
+					"sidebar-motion duration-200 z-50 fixed inset-y-0 left-0 w-72 md:static md:inset-auto",
+					open
+						? "translate-x-0 shadow-2xl md:w-72 md:shadow-none"
+						: "-translate-x-full pointer-events-none md:w-0 md:translate-x-0 md:overflow-hidden md:pointer-events-auto",
 				)}
 				aria-hidden={!open}
 			>
@@ -676,6 +684,7 @@ function SessionsSidebar() {
 						<Link
 							href="/"
 							aria-label="Home"
+							onClick={closeOnMobile}
 							className="lh-no-drag flex size-9 shrink-0 items-center justify-center rounded-md transition-colors hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50"
 						>
 							<LhMark className="size-6" />
@@ -712,7 +721,10 @@ function SessionsSidebar() {
 					<button
 						type="button"
 						data-testid="new-session-practice"
-						onClick={() => router.push("/chat/new?mode=practice")}
+						onClick={() => {
+							closeOnMobile();
+							router.push("/chat/new?mode=practice");
+						}}
 						className="flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-xs uppercase tracking-wider text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
 					>
 						<DumbbellIcon className="size-3" />
@@ -832,6 +844,7 @@ function SessionsSidebar() {
 									kbdSelected={i === kbdIndex}
 									onOpen={() => {
 										setKbdIndex(null);
+										closeOnMobile();
 										router.push(`/chat/${c.id}`);
 									}}
 									onContextMenu={(e) => openContext(e, c)}
