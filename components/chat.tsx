@@ -132,8 +132,8 @@ import { currentUserThinkingOpen, setAllUserThinkingOpen } from "@/components/th
  * deliberately narrower (~46rem centered) per the reference. Same ELEMENT,
  * same place — width polish only.
  */
-const COLUMN = "mx-auto w-full max-w-none px-6";
-const DOCK = "mx-auto w-full max-w-[46rem] px-4";
+const COLUMN = "mx-auto w-full max-w-none px-3 sm:px-6";
+const DOCK = "mx-auto w-full max-w-[46rem] px-2 sm:px-4";
 // The DOCK container's fixed width (46rem) and the plan marginalia's
 // geometry (owner, plan-placement round): the bare diagram sits in the
 // dock band's RIGHT flank — MARGIN_GAP from the DOCK container's edge and
@@ -2841,7 +2841,7 @@ export function DockOverlay({
 	return (
 		<div className="pointer-events-none absolute inset-x-0 bottom-0" style={{ right: sbInset }}>
 			<div className="h-24 bg-gradient-to-t from-background via-background/85 to-transparent" />
-			<div ref={blockRef} className="relative bg-background pb-5">
+			<div ref={blockRef} className="relative bg-background pb-3 sm:pb-5">
 				<div className={DOCK}>
 					<div ref={viewportRef} data-dock-viewport="" className="pointer-events-auto">
 					<div ref={bodyRef}>
@@ -2875,7 +2875,7 @@ export function DockOverlay({
 							claim={revealPending}
 						/>
 					)}
-					<div ref={shellRef} data-attachment-composer="" className="pointer-events-auto overflow-hidden rounded-2xl border bg-card shadow-lg">
+					<div ref={shellRef} data-attachment-composer="" className="pointer-events-auto overflow-hidden rounded-2xl border bg-card shadow-lg max-h-[82dvh] sm:max-h-none flex flex-col">
 						{preparationStatus}
 						{/* Include descendant margins (notably practice thinking's
 						    bottom margin) in the natural content measurement. */}
@@ -2901,6 +2901,7 @@ export function DockOverlay({
 									reveal={revealPending}
 									phase={phase}
 									onExpand={expandAndReveal}
+									onCollapse={() => setExpanded(false)}
 									onSubmit={onSubmitAnswer}
 									onPrepareSubmission={onPrepareBuiltin}
 									hasPendingInput={onBuiltinPendingInput}

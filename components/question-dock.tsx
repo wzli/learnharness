@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ViewReaderRef, NativeQuestionViewState } from "./session-view-readers";
-import { ArrowDownIcon, ChevronRightIcon, PlayIcon } from "lucide-react";
+import { ArrowDownIcon, ChevronDownIcon, ChevronRightIcon, PlayIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { finishDictation, isDictationActive, joinDictation, useDictationTarget } from "@/components/dictation";
 import { useEnterSubmits } from "@/components/enter-submits";
@@ -81,6 +81,7 @@ export interface QuestionDockProps {
 	 */
 	reveal?: boolean;
 	onExpand: () => void;
+	onCollapse?: () => void;
 	onSubmit: (output: QuestionAnswerData) => void;
 	onPrepareSubmission?: PrepareBuiltinSubmission;
 	hasPendingInput?: (question: QuestionData) => boolean;
@@ -120,6 +121,7 @@ export function QuestionDock({
 	expanded,
 	reveal = false,
 	onExpand,
+	onCollapse,
 	onSubmit,
 	onPrepareSubmission,
 	hasPendingInput,
@@ -178,6 +180,7 @@ export function QuestionDock({
 					input={parsed}
 					phase={phase}
 					active={expanded}
+					onCollapse={onCollapse}
 					onSubmit={onSubmit}
 					onPrepareSubmission={onPrepareSubmission}
 					hasPendingInput={hasPendingInput}
@@ -271,6 +274,7 @@ function QuestionDockForm({
 	input,
 	phase = "probe",
 	active,
+	onCollapse,
 	onSubmit,
 	onPrepareSubmission,
 	hasPendingInput,
@@ -613,12 +617,10 @@ function QuestionDockForm({
 	}, [kbdIdx]);
 
 	return (
-		<div ref={rootRef} data-testid="question-dock">
-			{/* Question area — scrolls internally if very tall; the bottom row stays put.
-			    Capped by the measured column (--dock-max-h; the old fixed 55dvh cut
-			    long questions short — owner round, 2026-10-05). */}
-			<div data-dock-scroll-area="" data-session-find-root="" className="max-h-[var(--dock-max-h,55dvh)] overflow-y-auto px-4 pt-3">
-				<div className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+		<div ref={rootRef} data-testid="question-dock" className="flex flex-col">
+			{/* Mobile / touch header bar: lets learner collapse dock to review chat context */}
+			<div className="flex items-center justify-between border-b border-border/40 px-3.5 py-1.5 sm:hidden">
+				<span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
 					{toolName === "probe"
 						? "Probe"
 						: toolName === "recall"
@@ -627,16 +629,46 @@ function QuestionDockForm({
 								? qd.questionType === "predict"
 									? "Prediction"
 									: "Check"
-									: kind === "explain"
-										? "Explain"
-											: "Question"}
+								: kind === "explain"
+									? "Explain"
+									: "Question"}
+					{qd.mode === "multi-select" && " · multi-select"}
+				</span>
+				{onCollapse && (
+					<button
+						type="button"
+						onClick={onCollapse}
+						className="flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground active:scale-95"
+					>
+						<span>Review chat</span>
+						<ChevronDownIcon className="size-3.5" />
+					</button>
+				)}
+			</div>
+
+			{/* Question area — scrolls internally if very tall; the bottom row stays put.
+			    Capped by the measured column (--dock-max-h; the old fixed 55dvh cut
+			    long questions short — owner round, 2026-10-05). */}
+			<div data-dock-scroll-area="" data-session-find-root="" className="max-h-[min(var(--dock-max-h,55dvh),42dvh)] sm:max-h-[var(--dock-max-h,55dvh)] overflow-y-auto px-3 sm:px-4 pt-2.5 sm:pt-3">
+				<div className="hidden sm:block mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+					{toolName === "probe"
+						? "Probe"
+						: toolName === "recall"
+							? "Recall"
+							: kind === "quiz"
+								? qd.questionType === "predict"
+									? "Prediction"
+									: "Check"
+								: kind === "explain"
+									? "Explain"
+									: "Question"}
 					{qd.mode === "multi-select" && " · select all that apply"}
 				</div>
-				<div className="mb-3 font-medium">
+				<div className="mb-2 sm:mb-3 font-medium">
 					<ToolContentResponse>{qd.question}</ToolContentResponse>
 				</div>
 				{qd.context && (
-					<div className="mb-3 text-sm text-muted-foreground">
+					<div className="mb-2.5 sm:mb-3 text-sm text-muted-foreground">
 						<ToolContentResponse>{qd.context}</ToolContentResponse>
 					</div>
 				)}
@@ -654,8 +686,8 @@ function QuestionDockForm({
 									data-kbdrow={i}
 									onClick={() => toggle(i)}
 									className={cn(
-										"flex items-start gap-3 rounded-lg border px-3 py-2 text-left text-sm outline-none transition-colors",
-										isSel ? "border-primary bg-accent" : "hover:bg-accent/50",
+										"flex w-full items-start gap-2.5 sm:gap-3 rounded-lg border px-2.5 sm:px-3 py-2.5 text-left text-sm outline-none transition-colors touch-manipulation cursor-pointer",
+										isSel ? "border-primary bg-accent" : "hover:bg-accent/50 active:bg-accent/70",
 										i === kbdIdx && !isSel && "ring-1 ring-border bg-accent/40",
 									)}
 								>
@@ -672,7 +704,7 @@ function QuestionDockForm({
 											</span>
 										)}
 									</span>
-									<span>
+									<span className="min-w-0 flex-1 overflow-x-auto">
 										<ToolContentResponse>{opt.label}</ToolContentResponse>
 										{kind !== "quiz" && opt.description && (
 											// Option subtext renders in Source Sans 3 (owner's mockup);
@@ -973,13 +1005,13 @@ function QuestionDockForm({
 						/>
 					)}
 					<div className="flex items-center justify-between gap-2 p-1">
-						<span aria-hidden className="pl-1.5 text-xs text-muted-foreground">
+						<span aria-hidden className="hidden sm:inline pl-1.5 text-xs text-muted-foreground">
 								{compactionRunning ? "compacting session…" : "↵ submits · ⇧↵ newline"}
 						</span>
 						<Button
 							type="submit"
 							disabled={!canSubmit || compactionRunning || preparing}
-							className="ml-auto h-9 rounded-[6px] px-3.5 text-sm font-medium"
+							className="w-full sm:w-auto sm:ml-auto h-10 sm:h-9 rounded-[8px] sm:rounded-[6px] px-4 text-sm font-medium touch-manipulation cursor-pointer"
 						>
 							Submit answer
 						</Button>
