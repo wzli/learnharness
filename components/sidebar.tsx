@@ -118,8 +118,9 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
 		void window.lh?.getZoom?.().then(setZoomVar);
 
 		const stored = localStorage.getItem(STORAGE_KEY);
-		// Default: open (first run introduces the sidebar).
-		setOpen(stored === null ? true : stored === "1");
+		// Default: open on desktop, closed on mobile viewports (< 768px).
+		const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+		setOpen(stored === null ? !isMobile : stored === "1");
 		setMounted(true);
 		return () => off?.();
 	}, []);
@@ -635,11 +636,23 @@ function SessionsSidebar() {
 	}, [open, pathname, refresh]);
 
 	return (
-		<aside
-			className={cn("sidebar-motion shrink-0 overflow-hidden duration-200", open ? "w-72" : "w-0")}
-			aria-hidden={!open}
-		>
-			<div className="flex h-full w-72 flex-col border-r bg-background">
+		<>
+			{open && (
+				<div
+					className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs md:hidden"
+					onClick={toggle}
+					aria-hidden="true"
+				/>
+			)}
+			<aside
+				className={cn(
+					"sidebar-motion duration-200 z-50 md:static md:shrink-0 md:overflow-hidden",
+					open ? "w-72" : "w-0",
+					"max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:overflow-hidden max-md:shadow-2xl",
+				)}
+				aria-hidden={!open}
+			>
+				<div className="flex h-full w-72 flex-col border-r bg-background">
 				{/* LH wordmark — the owner's header; close toggle sits at the edge.
 				    Merged chrome (2026-09-17): in Electron this band is the
 				    window's drag surface and starts after the traffic lights
@@ -928,6 +941,7 @@ function SessionsSidebar() {
 					onDeleted={onDeleted}
 				/>
 			</aside>
+		</>
 	);
 }
 
