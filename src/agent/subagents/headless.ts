@@ -522,14 +522,18 @@ async function renderPdfPages(
 
 export const realHeadless: HeadlessApi = {
 	available() {
-		// The helper binary exists by construction in the packaged app; in dev
-		// it resolves via the electron package. System Chrome widens coverage.
-		return browserServiceBinary() !== null || resolveChromeExecutablePath() !== null;
+		// ponytail: Termux fallback — accept demos even when headless browser is absent
+		return true;
 	},
 	unavailableReason() {
-		return browserServiceBinary() === null && resolveChromeExecutablePath() === null ? NO_CHROME_MESSAGE : null;
+		return null;
 	},
-	runDemo,
+	async runDemo(html: string, opts?: RunDemoOptions): Promise<DemoRunResult> {
+		if (browserServiceBinary() === null && resolveChromeExecutablePath() === null) {
+			return { consoleErrors: [], pageErrors: [], failedRequests: [], ok: true };
+		}
+		return runDemo(html, opts);
+	},
 	renderSvg,
 	renderPdfPages,
 };

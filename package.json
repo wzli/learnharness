@@ -13,8 +13,8 @@
 	"private": true,
 	"main": "electron/main.cjs",
 	"scripts": {
-		"dev": "next dev",
-		"build": "next build",
+		"dev": "next dev --webpack",
+		"build": "next build --webpack",
 		"start": "next start",
 		"test": "NODE_ENV=test tsx --test tests/*.test.ts tests/*.test.tsx",
 		"lint": "eslint .",
@@ -75,6 +75,7 @@
 		"katex": "$katex"
 	},
 	"devDependencies": {
+		"@next/swc-wasm-nodejs": "16.3.2",
 		"@next/eslint-plugin-next": "^16.3.3",
 		"@tailwindcss/postcss": "^4.3.3",
 		"@types/node": "^24.0.0",
