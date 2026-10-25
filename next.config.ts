@@ -119,6 +119,22 @@ const nextConfig: NextConfig = {
 		"@silvia-odwyer/photon-node", // CJS loads its adjacent WASM from disk
 		"@resvg/resvg-js", // native binding — same
 	],
+	webpack: (config, { isServer, webpack }) => {
+		if (!isServer) {
+			config.plugins.push(
+				new webpack.NormalModuleReplacementPlugin(/^node:/, (resource: { request: string }) => {
+					resource.request = resource.request.replace(/^node:/, "");
+				}),
+			);
+			config.resolve.fallback = {
+				...config.resolve.fallback,
+				crypto: false,
+				fs: false,
+				path: false,
+			};
+		}
+		return config;
+	},
 };
 
 export default nextConfig;
