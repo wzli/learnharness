@@ -85,6 +85,7 @@ export interface AuthProviderInfo {
  * xiaomi variants) each keep their own row — the UI groups as it wishes.
  */
 export const AUTH_PROVIDER_KEYS: readonly AuthProviderInfo[] = [
+	{ id: "9router", envVar: "NINEROUTER_KEY", label: "9Router" },
 	{ id: "ant-ling", envVar: "ANT_LING_API_KEY", label: "Ant Ling" },
 	{ id: "anthropic", envVar: "ANTHROPIC_API_KEY", label: "Anthropic" },
 	{ id: "baseten", envVar: "BASETEN_API_KEY", label: "Baseten" },
