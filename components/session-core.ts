@@ -314,7 +314,15 @@ export class SessionModel {
 			body,
 			signal,
 		};
-		let response = await this.fetch("/api/chat", init);
+		let response: Response;
+		try {
+			response = await this.fetch("/api/chat", init);
+		} catch (fetchErr) {
+			// Mobile network reconnect retry: 1 attempt with a short backoff
+			await delay(1000, signal);
+			if (signal?.aborted) throw fetchErr;
+			response = await this.fetch("/api/chat", init);
+		}
 		let waited = 0;
 		while (response.status === 409) {
 			await response.body?.cancel().catch(() => {});
@@ -627,7 +635,12 @@ export class SessionModel {
 			// flight: the turn is live server-side either way — do not attach
 			// a stream from a view that is gone or superseded.
 			if (this.consumeAbort !== controller) return;
-			await this.resumeStream(true);
+			try {
+				await this.resumeStream(true);
+			} catch (streamErr) {
+				// Non-fatal if stream attach blips — polling / background sync will recover turn
+				console.warn("resumeStream after postInputEvent encountered error:", streamErr);
+			}
 		} catch (err) {
 			if ((err as Error).name === "AbortError") return; // stop() or a newer consume won
 			this.setError((err as Error).message);

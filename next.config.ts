@@ -6,39 +6,6 @@ const nextConfig: NextConfig = {
 	// on 127.0.0.1. Harmless for plain web deploys (extra build output).
 	// The manual copies the docs require — public/ and .next/static — are
 	// done by scripts/build-server.mjs.
-	output: "standalone",
-	// SAFETY (empirically verified 2026-09-17): without this, output file
-	// tracing sweeps the repo's real data/ — chat records, graph ledgers —
-	// INTO the standalone bundle. A shipped desktop app would carry the
-	// developer's session data inside it.
-	//
-	// SECRETS (2026-10-08, caught in the payload audit): the same sweep
-	// ships the repo-root auth.json — the DEV BYOK key store — byte-identical
-	// into the DMG (the packaged app never reads it: the shell passes
-	// LH_AUTH_FILE → userData). Excluded here; build-server.mjs also REFUSES
-	// to package any standalone still containing it. .env* belt-and-braces
-	// the same class. Next also copies loaded bare .env after tracing;
-	// the build-server refusal remains required even with these excludes.
-	//
-	// ⚠ EXCLUDE PATTERNS ARE LOAD-BEARING IN WAYS THE DOCS DON'T DESCRIBE
-	// (empirically established 2026-10-08): adding dir excludes like
-	// "dist/**/*" / "./dist/**/*" for repo-root output dirs STRIPPED THE
-	// server-external packages (pi-ai / pi-agent-core lost everything
-	// under their dist/ — the traced copy collapsed to a bare package.json
-	// and the packaged server died on ERR_MODULE_NOT_FOUND; openai/
-	// @anthropic-ai — pi-ai's deps — vanished from the trace entirely).
-	// Anchored "./"-prefixed forms behave the same. **/data/**/* fixes
-	// suffix matching in Next's JavaScript collector, but NOT its native
-	// Turbopack tracer: that still prunes gcp-metadata and its private deps.
-	// Keep the narrow closure workaround below AND the native runtime gate.
-	// Real SDK data/ directories still need their explicit includes too.
-	// The recursive-DMG payload (repo dist/ swept into the bundle, shipping
-	// the previous build inside the next) is instead prevented by the
-	// desktop:dist clean step AND targeted post-trace curation in
-	// scripts/build-server.mjs (2026-10-11): remove standalone-root dist/
-	// and node_modules/electron/ (the demo helper's DEV runtime; packaged
-	// helpers use the app's own binary). Runtime dependencies' dist/ dirs
-	// stay intact, and the script guards against leaked data/keys.
 	outputFileTracingExcludes: {
 		"*": [
 			"**/data/**/*",
