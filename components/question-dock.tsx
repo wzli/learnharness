@@ -320,6 +320,10 @@ function QuestionDockForm({
 		return q;
 	}, [toolCallId, kind, input]);
 
+	// Draft storage key tied to this specific toolCallId so in-progress
+	// reasoning or answers survive network errors, page refreshes, and app switches.
+	const draftKey = `lh:draft:question:${toolCallId}`;
+
 	// The selection state machine lives in question-core (pure, tested):
 	// single-select displaces, multi-select coexists — picking the ask
 	// "Other…" row in a multi-select must never clear already-picked
@@ -341,6 +345,69 @@ function QuestionDockForm({
 	// between questions, so each question starts fresh at 50.
 	const [confIdx, setConfIdx] = useState<number>(initialDraft?.confidenceIndex ?? DEFAULT_CONFIDENCE_INDEX);
 	const selectMode: SelectMode = qd.mode === "multi-select" ? "multi-select" : "single-select";
+
+	// Restore draft on mount if previously saved for this toolCallId
+	useEffect(() => {
+		try {
+			const saved = localStorage.getItem(draftKey);
+			if (!saved) return;
+			const data = JSON.parse(saved);
+			if (typeof data.thinking === "string") {
+				setThinking(data.thinking);
+				thinkingTextRef.current = data.thinking;
+			}
+			if (typeof data.text === "string") {
+				setText(data.text);
+				answerTextRef.current = data.text;
+			}
+			if (typeof data.other === "string") {
+				setOther(data.other);
+			}
+			if (typeof data.confIdx === "number" && data.confIdx >= 0 && data.confIdx < CONFIDENCE_STOPS.length) {
+				setConfIdx(data.confIdx);
+			}
+			if (Array.isArray(data.selected)) {
+				setSel({
+					selected: new Set(data.selected),
+					otherSelected: Boolean(data.otherSelected),
+					dontKnow: Boolean(data.dontKnow),
+				});
+			}
+		} catch {
+			/* ignore corrupt draft */
+		}
+	}, [draftKey]);
+
+	// Auto-save draft whenever selections or text fields change
+	useEffect(() => {
+		try {
+			const hasData =
+				thinking.trim().length > 0 ||
+				text.trim().length > 0 ||
+				other.trim().length > 0 ||
+				sel.selected.size > 0 ||
+				sel.otherSelected ||
+				sel.dontKnow;
+			if (hasData) {
+				localStorage.setItem(
+					draftKey,
+					JSON.stringify({
+						thinking,
+						text,
+						other,
+						confIdx,
+						selected: [...sel.selected],
+						otherSelected: sel.otherSelected,
+						dontKnow: sel.dontKnow,
+					}),
+				);
+			} else {
+				localStorage.removeItem(draftKey);
+			}
+		} catch {
+			/* local storage full or unavailable */
+		}
+	}, [draftKey, thinking, text, other, confIdx, sel]);
 
 	// The PRIMARY dictation input (owner, STT round 1): while a question
 	// waits, dictated finals land HERE, never in the hidden composer — text
@@ -412,6 +479,9 @@ function QuestionDockForm({
 			text: answerTextRef.current,
 			confidenceIndex: confIdx,
 		});
+		try {
+			localStorage.removeItem(draftKey);
+		} catch {}
 		onSubmit(buildAnswer(qd, req, toolName));
 	};
 
