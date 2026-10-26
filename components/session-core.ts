@@ -565,7 +565,15 @@ export class SessionModel {
 		};
 		const post = async () => {
 			onPostPending?.(true);
-			try { return await this.fetch("/api/chat", init); }
+			try {
+				try { return await this.fetch("/api/chat", init); }
+				catch (fetchErr) {
+					// Mobile network reconnect retry: 1 attempt with a short backoff
+					await delay(1000, signal);
+					if (signal?.aborted) throw fetchErr;
+					return await this.fetch("/api/chat", init);
+				}
+			}
 			finally { onPostPending?.(false); }
 		};
 		let response = await post();
@@ -1006,7 +1014,12 @@ export class SessionModel {
 			// flight: the turn is live server-side either way — do not attach
 			// a stream from a view that is gone or superseded.
 			if (this.consumeAbort !== controller) return true;
-			await this.resumeStream(true);
+			try {
+				await this.resumeStream(true);
+			} catch (streamErr) {
+				// Non-fatal if stream attach blips — polling / background sync will recover turn
+				console.warn("resumeStream after postInputEvent encountered error:", streamErr);
+			}
 			return true;
 		} catch (err) {
 			settleDelivery();
