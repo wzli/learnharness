@@ -32,7 +32,7 @@ export type DraftPick = { id: string; name: string; statement: string };
  * server-side (per-session models, owner 2026-09-28).
  */
 
-const DOCK = "mx-auto w-full max-w-[46rem] px-4";
+const DOCK = "mx-auto w-full max-w-[46rem] px-2 sm:px-4";
 
 /**
  * Create, safely hand over the full opening text, then return a short
@@ -220,9 +220,9 @@ export function DraftShell({
 			{/* The floating reopen toggle — pointer-events-none except the
 			    toggle itself (home's pattern), painted AFTER the overlay's
 			    column so nothing of it blocks the canvas area. */}
-			<header className="pointer-events-none absolute inset-x-0 top-0 flex items-center gap-2 px-3 py-2">
+			<header className="pointer-events-none absolute inset-x-0 top-0 z-30 flex items-center gap-2 px-3 py-2">
 				<div className="pointer-events-auto">
-					<SidebarToggle />
+					<SidebarToggle floating />
 				</div>
 			</header>
 		</div>
