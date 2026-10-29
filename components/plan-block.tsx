@@ -872,7 +872,7 @@ export function PlanPopup({ messages, onClose }: { messages: readonly PopupMessa
 			// SESSION-SCOPED (absolute, not fixed): the chat page mounts this
 			// INSIDE the session-area div — below the drag bar, right of the
 			// sidebar. 80% + blur: the transcript ghosts through.
-			className="pointer-events-auto absolute inset-0 z-40 flex flex-col bg-background/80 p-4 backdrop-blur-sm"
+			className="pointer-events-auto absolute inset-0 z-40 flex flex-col bg-background/80 p-2 sm:p-4 backdrop-blur-sm"
 			// Ranked inside the session's bounded view stack, below app modals.
 			style={{ zIndex: 100 + layer.order }}
 			role="region"
@@ -883,7 +883,7 @@ export function PlanPopup({ messages, onClose }: { messages: readonly PopupMessa
 		>
 			<div className="mb-2 flex items-center gap-2">
 				<span className="text-sm font-medium">The plan</span>
-				<span className="text-xs text-muted-foreground">live — statuses derive from your check outcomes</span>
+				<span className="hidden sm:inline text-xs text-muted-foreground">live — statuses derive from your check outcomes</span>
 				<Hint label="Close" binding="escape" side="left">
 <button
 					type="button"

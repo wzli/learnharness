@@ -348,12 +348,12 @@ export function SettingsDialogBody({
 			aria-modal="true"
 			aria-label="Settings"
 			data-testid="settings-dialog"
-			className="settings-dialog-pop flex h-[620px] max-h-[85vh] w-[920px] max-w-[90vw] flex-col overflow-hidden rounded-md border border-border bg-card shadow-xl"
+			className="settings-dialog-pop flex h-[620px] max-h-[92dvh] w-[920px] max-w-[95vw] md:max-w-[90vw] flex-col overflow-hidden rounded-md border border-border bg-card shadow-xl"
 			onClick={(e) => e.stopPropagation()}
 		>
 			{/* Header — the app's quiet CMU title language. */}
-			<header className="flex h-15 shrink-0 items-center gap-3 border-b border-border px-5">
-				<h2 className="font-title text-2xl tracking-tight">Settings</h2>
+			<header className="flex h-15 shrink-0 items-center gap-3 border-b border-border px-4 sm:px-5">
+				<h2 className="font-title text-xl sm:text-2xl tracking-tight">Settings</h2>
 				<Hint
 						// Esc closes through the shared interaction owner.
 						label="Close"
@@ -380,22 +380,23 @@ export function SettingsDialogBody({
 					</Hint>
 			</header>
 
-			<div className="flex min-h-0 flex-1">
-				{/* Left nav — mono labels and theme-inherited decorative icons,
-					    active = bg-accent. */}
+			<div className="flex min-h-0 flex-1 flex-col md:flex-row">
+				{/* Left/top nav — mono labels and theme-inherited decorative icons,
+				    active = bg-accent. Scrollable pill row on mobile, sidebar on
+				    desktop (custom mobile layout). */}
 				<nav
 					aria-label="Settings sections"
 					data-testid="settings-nav"
-					className="flex min-h-0 w-48 shrink-0 flex-col gap-1 overflow-y-auto border-r border-border p-2"
+					className="flex shrink-0 flex-row gap-1 overflow-x-auto border-b border-border p-2 md:w-44 md:flex-col md:overflow-y-auto md:border-r md:border-b-0"
 				>
 					{navSections.map((s, index) => (
-						<div key={s.id} className="shrink-0">
-							{index === SECTIONS.length && <hr className="my-2 border-border" />}
+						<div key={s.id} className="shrink-0 md:w-full">
+							{index === SECTIONS.length && <hr className="my-2 border-border max-md:hidden" />}
 							<button
 								type="button"
 								data-testid={`settings-nav-${s.id}`}
 								aria-current={selected === s.id}
-								className={`flex w-full items-center gap-2 break-words rounded-sm px-3 py-1.5 text-left font-ui text-sm transition-colors ${
+								className={`flex w-full items-center gap-2 whitespace-nowrap rounded-sm px-3 py-1.5 text-left font-ui text-sm transition-colors md:whitespace-normal ${
 									selected === s.id
 										? "bg-accent text-foreground"
 										: "text-muted-foreground hover:bg-accent hover:text-foreground"
@@ -405,7 +406,7 @@ export function SettingsDialogBody({
 								{s.icon && <s.icon aria-hidden="true" focusable="false" className="size-3.5 shrink-0" />}
 								<span className="min-w-0">{s.label}</span>
 							</button>
-							{s.id === "plugins" && <hr className="my-2 border-border" />}
+							{s.id === "plugins" && <hr className="my-2 border-border max-md:hidden" />}
 						</div>
 					))}
 				</nav>

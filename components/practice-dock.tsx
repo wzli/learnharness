@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import type { ViewReaderRef } from "./session-view-readers";
 import { ChevronRightIcon } from "lucide-react";
 import { ToolContentResponse } from "@/components/ai-elements/message";
@@ -72,6 +72,9 @@ export function PracticeDock({ viewReader, problemCallId, input, expanded, onExp
 	const custom = useRef(customInput); custom.current = customInput;
 	const thinking = customInput ? customInput.thinking : nativeThinking;
 	const setThinking = (value: string) => { if (custom.current) custom.current.onThinkingChange(value); else setNativeThinking(value); };
+	// Draft storage key tied to this problemCallId so a half-written trace
+	// survives network errors, refreshes, and app switches (mobile).
+	const draftKey = `lh:draft:practice:${problemCallId}`;
 	// Ref MIRRORS the field ("nothing gets lost", the question-dock
 	// discipline): a submit resuming after `await finishDictation()` reads
 	// the tail, never a stale closure.
@@ -83,6 +86,36 @@ export function PracticeDock({ viewReader, problemCallId, input, expanded, onExp
 		viewReader.current = read;
 		return () => { if (viewReader.current === read) viewReader.current = null; };
 	}, [viewReader]);
+
+	// Restore draft on mount if previously saved for this problemCallId.
+	// Host-owned editors (customInput) keep their own draft authority.
+	useEffect(() => {
+		if (customInput) return;
+		try {
+			const saved = localStorage.getItem(draftKey);
+			if (saved && typeof saved === "string") {
+				setNativeThinking(saved);
+				thinkingRef.current = saved;
+			}
+		} catch {}
+	}, [draftKey, customInput]);
+
+	// Auto-save draft on changes
+	useEffect(() => {
+		if (customInput) return;
+		try {
+			if (thinking.trim().length > 0) {
+				localStorage.setItem(draftKey, thinking);
+			} else {
+				localStorage.removeItem(draftKey);
+			}
+		} catch {}
+	}, [draftKey, thinking, customInput]);
+
+	const clearDraft = () => {
+		if (customInput) return;
+		try { localStorage.removeItem(draftKey); } catch {}
+	};
 
 	useDictationTarget(
 		useCallback(
@@ -104,7 +137,7 @@ export function PracticeDock({ viewReader, problemCallId, input, expanded, onExp
 			if (customInput ? !customInput.ready : (!thinkingRef.current.trim() && !hasPendingInput)) return;
 			let capturedRevision = editRevision.current;
 			prepare(() => { capturedRevision = editRevision.current; return customInput ? thinkingRef.current : thinkingRef.current.trim(); }, captured => {
-				if (editRevision.current === capturedRevision && (customInput ? thinkingRef.current : thinkingRef.current.trim()) === captured) { thinkingRef.current = ""; setThinking(""); }
+				if (editRevision.current === capturedRevision && (customInput ? thinkingRef.current : thinkingRef.current.trim()) === captured) { thinkingRef.current = ""; setThinking(""); clearDraft(); }
 			});
 			return;
 		}
@@ -112,6 +145,7 @@ export function PracticeDock({ viewReader, problemCallId, input, expanded, onExp
 		if (text.length === 0) return;
 		thinkingRef.current = "";
 		setThinking("");
+		clearDraft();
 		onSubmit(text);
 	};
 
@@ -146,7 +180,7 @@ export function PracticeDock({ viewReader, problemCallId, input, expanded, onExp
 			    cards' label row — owner round, 2026-10-05) + the statement,
 			    markdown + LaTeX rendered, capped by the measured column
 			    (--dock-max-h; the old fixed 40vh cut long problems short). */}
-			<div data-dock-scroll-area="" className="max-h-[var(--dock-max-h,40vh)] overflow-y-auto px-4 pt-3 pb-2">
+			<div data-dock-scroll-area="" className="max-h-[min(var(--dock-max-h,40vh),38dvh)] sm:max-h-[var(--dock-max-h,40vh)] overflow-y-auto px-3 sm:px-4 pt-2.5 sm:pt-3 pb-2">
 				<div className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Problem</div>
 				<div className="lh-prose text-[15px]">
 					<ToolContentResponse>{input.statement}</ToolContentResponse>
@@ -198,7 +232,7 @@ export function PracticeDock({ viewReader, problemCallId, input, expanded, onExp
 				    one p-1 row. Corner radii concentric: shell 16 − m-1.5 (6) =
 				    field 10 − p-1 (4) = button 6. */}
 				<div className="flex items-center justify-between gap-2 p-1">
-					<span aria-hidden className="pl-1.5 text-xs text-muted-foreground">
+					<span aria-hidden className="hidden sm:inline pl-1.5 text-xs text-muted-foreground">
 						{compactionRunning ? "compacting session…" : "↵ submits · ⇧↵ newline"}
 					</span>
 					<Button
@@ -206,7 +240,7 @@ export function PracticeDock({ viewReader, problemCallId, input, expanded, onExp
 						data-testid="practice-send"
 						disabled={(customInput ? !customInput.ready : (!thinking.trim() && !hasPendingInput)) || compactionRunning || preparing}
 						onClick={() => submit()}
-						className="ml-auto h-9 rounded-[6px] px-3.5 text-sm font-medium"
+						className="w-full sm:w-auto sm:ml-auto h-10 sm:h-9 rounded-[8px] sm:rounded-[6px] px-4 text-sm font-medium touch-manipulation cursor-pointer"
 					>
 						{customInput ? "Submit" : "Submit thinking"}
 					</Button>
