@@ -172,10 +172,10 @@ export function MinimalHome({
 								type="button"
 								onClick={() => setChainsOpen(true)}
 								data-testid="open-chain-table"
-								className="flex h-7 items-center gap-1.5 rounded-lg px-2.5 text-xs text-muted-foreground transition-colors hover:bg-accent"
+								className="flex h-7 items-center gap-1.5 rounded-lg px-2 sm:px-2.5 text-xs text-muted-foreground transition-colors hover:bg-accent"
 							>
 								<ListTreeIcon className="size-3" />
-								Chains
+								<span className="hidden sm:inline">Chains</span>
 							</button>
 						</Hint>
 					</div>
@@ -186,10 +186,10 @@ export function MinimalHome({
 								disabled={importing}
 								onClick={() => fileInputRef.current?.click()}
 								data-testid="import-notes"
-								className="flex h-7 items-center gap-1.5 rounded-lg px-2.5 text-xs text-muted-foreground transition-colors hover:bg-accent disabled:opacity-50"
+								className="flex h-7 items-center gap-1.5 rounded-lg px-2 sm:px-2.5 text-xs text-muted-foreground transition-colors hover:bg-accent disabled:opacity-50"
 							>
 								<UploadIcon className="size-3" />
-								{importing ? "Importing…" : "Import notes…"}
+								<span className="hidden sm:inline">{importing ? "Importing…" : "Import notes…"}</span>
 							</button>
 						</Hint>
 					</div>

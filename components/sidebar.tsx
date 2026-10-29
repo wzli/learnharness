@@ -188,29 +188,31 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
  *  so resting layouts are pixel-identical to the old conditional render.
  *  The icon fades with the slot and is clipped by it as it collapses —
  *  no popping in either direction. */
-export function SidebarToggle() {
+export function SidebarToggle({ floating = false }: { floating?: boolean } = {}) {
 	const { open, toggle } = useSidebar();
 	return (
 		<span
 			className={cn(
 				"sidebar-motion lh-no-drag relative flex h-9 shrink-0 overflow-hidden duration-200",
-				open ? "w-0 -mr-3" : "w-9 mr-0 lh-closed-toggle",
+				open ? "w-0 -mr-3" : floating ? "w-auto mr-0" : "w-9 mr-0 lh-closed-toggle",
 			)}
 		>
 			<Hint label="Open sidebar" action="toggle-sidebar">
 			<Button
-				variant="ghost"
-				size="icon"
+				variant={floating ? "outline" : "ghost"}
+				size={floating ? "sm" : "icon"}
 				aria-label="Open sidebar"
 				aria-hidden={open}
 				tabIndex={open ? -1 : 0}
 				onClick={toggle}
-				className={cn("sidebar-motion duration-200", open ? "pointer-events-none opacity-0" : "opacity-100")}
+				className={cn(
+					"sidebar-motion duration-200 cursor-pointer",
+					open ? "pointer-events-none opacity-0" : "opacity-100",
+					floating && "rounded-xl border-border/80 bg-card/90 shadow-lg backdrop-blur-md text-foreground hover:bg-accent flex items-center gap-1.5 px-2.5 h-9",
+				)}
 			>
-				{/* Owner, round 6: size-4, SAME as the close glyph — the toggle
-				    must not grow when the sidebar is closed (it did: size-5 here).
-				    The small look is the standard, both directions. */}
 				<PanelLeftOpenIcon className="size-4" />
+				{floating && <span className="text-xs font-medium pr-0.5">Sessions</span>}
 			</Button>
 			</Hint>
 		</span>

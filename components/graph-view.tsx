@@ -869,7 +869,7 @@ export function GraphChromeRow({
 	return (
 		<>
 			{!isEmpty && (
-				<div className="graph-chrome-fade-in w-56 min-w-0 shrink rounded-xl border bg-card/85 px-1 py-[3px] shadow-lg backdrop-blur">
+				<div className="graph-chrome-fade-in hidden sm:block w-40 md:w-56 min-w-0 shrink rounded-xl border bg-card/85 px-1 py-[3px] shadow-lg backdrop-blur">
 					<Hint
 						// ⌘F focuses node search (surface-scoped registry action).
 						label="Search nodes"
@@ -903,10 +903,10 @@ export function GraphChromeRow({
 							type="button"
 							onClick={onOpenChains}
 							data-testid="open-chain-table"
-							className="flex h-7 items-center gap-1.5 rounded-lg px-2.5 text-xs text-muted-foreground transition-colors hover:bg-accent"
+							className="flex h-7 items-center gap-1.5 rounded-lg px-2 sm:px-2.5 text-xs text-muted-foreground transition-colors hover:bg-accent"
 						>
 							<ListTreeIcon className="size-3" />
-							Chains
+							<span className="hidden sm:inline">Chains</span>
 						</button>
 					</Hint>
 				</div>
@@ -937,10 +937,10 @@ export function GraphChromeRow({
 						disabled={importing}
 						onClick={() => fileInputRef.current?.click()}
 						data-testid="import-notes"
-					className="flex h-7 items-center gap-1.5 rounded-lg px-2.5 text-xs text-muted-foreground transition-colors hover:bg-accent disabled:opacity-50"
-				>
+						className="flex h-7 items-center gap-1.5 rounded-lg px-2 sm:px-2.5 text-xs text-muted-foreground transition-colors hover:bg-accent disabled:opacity-50"
+					>
 						<UploadIcon className="size-3" />
-						{importing ? "Importing…" : "Import notes…"}
+						<span className="hidden sm:inline">{importing ? "Importing…" : "Import notes…"}</span>
 					</button>
 				</Hint>
 			</div>
