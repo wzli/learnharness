@@ -162,10 +162,10 @@ export function MinimalHome({
 								type="button"
 								onClick={() => setChainsOpen(true)}
 								data-testid="open-chain-table"
-								className="flex h-7 items-center gap-1.5 rounded-lg px-2.5 text-xs text-muted-foreground transition-colors hover:bg-accent"
+								className="flex h-7 items-center gap-1.5 rounded-lg px-2 sm:px-2.5 text-xs text-muted-foreground transition-colors hover:bg-accent"
 							>
 								<ListTreeIcon className="size-3" />
-								Chains
+								<span className="hidden sm:inline">Chains</span>
 							</button>
 						</Hint>
 					</div>

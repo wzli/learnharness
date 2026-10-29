@@ -204,7 +204,6 @@ export function Home({
 				)}
 			</main>
 
-
 			{/* New session — same floating blob as the chat composer, docked
 			    OVER the graph (no gradient: the graph runs clean under it to the
 			    bottom edge). Matches chat.tsx's DOCK geometry (max-w-[46rem]
@@ -328,9 +327,9 @@ export function Home({
 			{/* Floating host chrome stays outside page-content coverage, after
 			    the region at the same owned-surface rank. The drag mask remains
 			    first so later controls retain their Electron no-drag carve-outs. */}
-			<header style={chromeStyle} className="pointer-events-none absolute inset-x-0 top-0 flex items-center gap-2 px-3 py-2">
+			<header style={chromeStyle} className="pointer-events-none absolute inset-x-0 top-0 z-30 flex items-center gap-2 px-3 py-2">
 				<div className="pointer-events-auto">
-					<SidebarToggle />
+					<SidebarToggle floating />
 				</div>
 			</header>
 
